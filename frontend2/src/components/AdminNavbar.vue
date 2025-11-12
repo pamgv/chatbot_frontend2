@@ -9,7 +9,8 @@
 
     <!-- Header -->
     <div class="sidebar-header">
-      <!--<button class="new-chat-btn justify-between" @click="startNewChat">
+      <!-- Botón nuevo chat (deshabilitado por ahora)
+      <button class="new-chat-btn justify-between" @click="startNewChat">
         <div class="flex items-center gap-2">
           <i class="bi bi-globe"></i>
           <span>New Chat</span>
@@ -17,14 +18,6 @@
         <i class="bi bi-pencil-square"></i>
       </button>-->
     </div>
-
-    <!-- Buscador 
-    <div class="search-container">
-      <div class="search-input-wrapper">
-        <i class="bi bi-search"></i>
-        <input v-model="searchQuery" type="text" placeholder="Search game..." class="search-input" />
-      </div>
-    </div>-->
 
     <!-- Lista de juegos -->
     <div class="conversations-list">
@@ -58,20 +51,7 @@
 
     <!-- Footer -->
     <div class="sidebar-footer">
-      <div class="flex gap-2 sm:flex-row flex-col">
-        <!--<button class="footer-btn">
-          <i class="bi bi-file-arrow-up"></i>
-          <span>Export</span>
-        </button>
-        <button class="footer-btn">
-          <i class="bi bi-file-arrow-down"></i>
-          <span>Import</span>
-        </button> -->
-      </div>
-      <!--<button class="footer-btn">
-        <i class="bi bi-trash"></i>
-        <span>Clear conversations</span>
-      </button>-->
+      <div class="flex gap-2 sm:flex-row flex-col"></div>
       <button class="footer-btn" @click="logout">
         <i class="bi bi-box-arrow-right"></i>
         <span>Logout</span>
@@ -86,6 +66,9 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../store/auth";
 
+// ✅ API Base dinámica
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const router = useRouter();
 const authStore = useAuthStore();
 
@@ -97,7 +80,7 @@ const searchQuery = ref("");
 // 🔹 Cargar juegos del usuario
 const loadGames = async () => {
   try {
-    const { data } = await axios.get(`http://localhost:8000/user/get_stats/${username.value}`);
+    const { data } = await axios.get(`${API_BASE}/user/get_stats/${username.value}`);
     // Orden descendente: últimos juegos primero
     games.value = (data.games || []).sort((a, b) => b.game_number - a.game_number);
   } catch (err) {
@@ -124,12 +107,10 @@ const selectGame = async (gameNumber) => {
 
   try {
     // 1️⃣ Traer mensajes del juego seleccionado
-    const { data } = await axios.get(
-      `http://localhost:8000/user/get_game_messages/${username.value}/${gameNumber}`
-    );
+    const { data } = await axios.get(`${API_BASE}/user/get_game_messages/${username.value}/${gameNumber}`);
 
     // 2️⃣ Buscar el juego correspondiente (para sus stats)
-    const gameData = games.value.find(g => g.game_number === gameNumber);
+    const gameData = games.value.find((g) => g.game_number === gameNumber);
 
     // 3️⃣ Emitir evento global con mensajes y stats
     const event = new CustomEvent("load-conversation", {
@@ -143,12 +124,10 @@ const selectGame = async (gameNumber) => {
       },
     });
     window.dispatchEvent(event);
-
   } catch (err) {
     console.error("Error loading messages:", err);
   }
 };
-
 
 // 🔹 Logout
 const logout = () => {
@@ -185,4 +164,3 @@ onUnmounted(() => {
   window.removeEventListener("games-updated", handleGamesUpdated);
 });
 </script>
-
