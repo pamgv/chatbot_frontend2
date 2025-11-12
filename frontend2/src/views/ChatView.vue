@@ -19,9 +19,9 @@
         <div>
           <h2>IntelligentTutor-MeatScience</h2>
           <p class="bot-status">User: {{ username }}</p>
-          <p class="bot-status">Game: {{ gameNumber }} · Question: {{ userMessageCount }}/20 · Score: {{ gameStore.score }}
-</p>
-
+          <p class="bot-status">
+            Game: {{ gameNumber }} · Question: {{ userMessageCount }}/20 · Score: {{ gameStore.score }}
+          </p>
         </div>
       </div>
     </Motion>
@@ -38,7 +38,9 @@
         <div class="message-container" :class="message.sender">
           <div class="message-bubble" :class="message.sender">
             <div v-if="message.sender === 'user'" class="user-avatar"><i class="bi bi-person"></i></div>
-            <div v-else class="bot-avatar"><div class="bot-logo"><span class="bot-logo-text">NMSU</span></div></div>
+            <div v-else class="bot-avatar">
+              <div class="bot-logo"><span class="bot-logo-text">NMSU</span></div>
+            </div>
             <div class="message-content">
               <div class="message-header">
                 <span class="sender-name">{{ message.sender === "user" ? "You" : "NMSU" }}</span>
@@ -137,6 +139,8 @@ import { useGameStore } from "../store/gameStore";
 import axios from "axios";
 import { storeToRefs } from "pinia";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const router = useRouter();
 const authStore = useAuthStore();
 const gameStore = useGameStore();
@@ -178,7 +182,7 @@ watch([messages, isLoading, showQuiz], () => setTimeout(scrollToBottom, 300), { 
 const loadUserData = async () => {
   if (!username.value) return;
   try {
-    const { data } = await axios.get(`http://localhost:8000/user/get_stats/${username.value}`);
+    const { data } = await axios.get(`${API_BASE}/user/get_stats/${username.value}`);
     let newGameNumber = 1;
     if (data.games && data.games.length > 0) {
       const lastGame = data.games[data.games.length - 1];
@@ -208,42 +212,34 @@ const sendMessage = async () => {
   isLoading.value = true;
 
   const nextCount = gameStore.userMessageCount + 1;
- if (nextCount > 20) {
-  // 🆕 Incrementa juego
-  gameStore.gameNumber++;
-  gameStore.userMessageCount = 0;
-  hasPersistedCurrentGame.value = false;
+  if (nextCount > 20) {
+    gameStore.gameNumber++;
+    gameStore.userMessageCount = 0;
+    hasPersistedCurrentGame.value = false;
 
-  // 💾 Crear nuevo juego en DB
-  await axios.post("http://localhost:8000/user/update_game", {
-    username: username.value,
-    game_number: gameStore.gameNumber,
-    question_number: 1,
-    correct_count: 0,
-    highest_score: gameStore.highestScore,
-  });
+    await axios.post(`${API_BASE}/user/update_game`, {
+      username: username.value,
+      game_number: gameStore.gameNumber,
+      question_number: 1,
+      correct_count: 0,
+      highest_score: gameStore.highestScore,
+    });
 
-  // 🧩 Refresca datos del usuario y lista de juegos sin recargar
-  await loadUserData();
-
-  // 🔊 Notifica globalmente (para sidebar u otros componentes)
-  window.dispatchEvent(new CustomEvent("games-updated", { detail: { username: username.value } }));
-
-  // 🪄 Reinicia mensajes visuales
-  messages.value = [
-    { id: Date.now(), text: `🎮 Game #${gameStore.gameNumber} started!`, sender: "bot" },
-  ];
-  isLoading.value = false;
-  return;
-}
-
+    await loadUserData();
+    window.dispatchEvent(new CustomEvent("games-updated", { detail: { username: username.value } }));
+    messages.value = [
+      { id: Date.now(), text: `🎮 Game #${gameStore.gameNumber} started!`, sender: "bot" },
+    ];
+    isLoading.value = false;
+    return;
+  }
 
   const isFirstOfThisGame = gameStore.userMessageCount === 0;
   gameStore.userMessageCount = nextCount;
 
   try {
     if (isFirstOfThisGame && !hasPersistedCurrentGame.value) {
-      await axios.post("http://localhost:8000/user/update_game", {
+      await axios.post(`${API_BASE}/user/update_game`, {
         username: username.value,
         game_number: gameStore.gameNumber,
         question_number: 1,
@@ -253,7 +249,7 @@ const sendMessage = async () => {
       hasPersistedCurrentGame.value = true;
     }
 
-    const { data } = await axios.post("http://localhost:8000/user/save_message", {
+    const { data } = await axios.post(`${API_BASE}/user/save_message`, {
       username: username.value,
       text,
       game_number: gameStore.gameNumber,
@@ -262,12 +258,11 @@ const sendMessage = async () => {
 
     messages.value.push({ id: Date.now() + 1, text: data.bot_response, sender: "bot" });
 
-    // 🧠 Generar quiz en 5, 10, 15, 20
     if (nextCount % 5 === 0) {
       await nextTick();
       const context = messages.value.slice(-5).map(m => `${m.sender}: ${m.text}`).join("\n");
       try {
-        const quizData = await axios.post("http://localhost:8000/chatbot/generate_quiz", {
+        const quizData = await axios.post(`${API_BASE}/chatbot/generate_quiz`, {
           username: username.value,
           context,
         });
@@ -303,26 +298,22 @@ const sendMessage = async () => {
     isLoading.value = false;
     scrollToBottom();
   }
-}; // ✅ cierre añadido
+};
 
 const selectAnswer = async (option) => {
   quizAnswered.value = true;
   isAnswerCorrect.value = option === correctAnswer.value;
-
-  // 🧩 Actualizar score local
   if (isAnswerCorrect.value) gameStore.score++;
 
-  // 🧠 Guardar resultado en la base de datos
   try {
-    await axios.post("http://localhost:8000/user/save_quiz_result", {
+    await axios.post(`${API_BASE}/user/save_quiz_result`, {
       username: username.value,
       game_number: gameStore.gameNumber,
       question_number: gameStore.userMessageCount,
       is_correct: isAnswerCorrect.value,
     });
 
-    // También actualizar progreso general del juego
-    await axios.post("http://localhost:8000/user/update_game", {
+    await axios.post(`${API_BASE}/user/update_game`, {
       username: username.value,
       game_number: gameStore.gameNumber,
       question_number: gameStore.userMessageCount,
@@ -335,13 +326,11 @@ const selectAnswer = async (option) => {
     console.error("Error saving quiz result:", err);
   }
 
-  // Cerrar card tras 2.5s
   setTimeout(() => {
     showQuiz.value = false;
   }, 2500);
   scrollToBottom();
 };
-
 
 onMounted(async () => {
   authStore.initialize();
@@ -352,24 +341,18 @@ onMounted(async () => {
 onMounted(() => {
   window.addEventListener("load-conversation", (event) => {
     const { gameNumber, messages: rawMessages, stats } = event.detail;
-
-    // 🧩 Actualizar gameStore con el progreso real
     gameStore.gameNumber = gameNumber;
     gameStore.userMessageCount = stats?.question_number || 0;
     gameStore.score = stats?.correct_count || 0;
-
-    // 🔁 Mostrar mensajes en el chat
     messages.value = rawMessages.flatMap((m) => [
       { sender: "user", text: m.user_message },
       { sender: "bot", text: m.bot_response },
     ]);
-
     console.log(
       `📚 Loaded Game #${gameNumber}: ${gameStore.userMessageCount} questions, ${gameStore.score} correct`
     );
   });
 });
-
 </script>
 
 <style scoped src="../styles/chat.css"></style>
