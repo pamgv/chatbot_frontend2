@@ -67,7 +67,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "../store/auth";
 
 // ✅ API Base dinámica
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -164,3 +164,4 @@ onUnmounted(() => {
   window.removeEventListener("games-updated", handleGamesUpdated);
 });
 </script>
+
