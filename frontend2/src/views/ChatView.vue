@@ -302,7 +302,23 @@ const sendMessage = async () => {
 
 const selectAnswer = async (option) => {
   quizAnswered.value = true;
-  isAnswerCorrect.value = option === correctAnswer.value;
+
+  // 🧠 Normaliza la comparación (admite letra o texto)
+  const normalizedCorrect = correctAnswer.value.trim().toLowerCase();
+  const normalizedOption = option.trim().toLowerCase();
+
+  // Si la respuesta correcta viene como "B", obtenemos la opción correspondiente
+  const letterMap = ["a", "b", "c", "d", "e"];
+  let correctText = normalizedCorrect;
+
+  // Si el valor de correctAnswer es una letra (A, B, C...), la convertimos a texto
+  if (letterMap.includes(normalizedCorrect)) {
+    const index = letterMap.indexOf(normalizedCorrect);
+    correctText = quizOptions.value[index]?.trim().toLowerCase() || "";
+  }
+
+  isAnswerCorrect.value = normalizedOption === correctText;
+
   if (isAnswerCorrect.value) gameStore.score++;
 
   try {
@@ -331,6 +347,7 @@ const selectAnswer = async (option) => {
   }, 2500);
   scrollToBottom();
 };
+
 
 onMounted(async () => {
   authStore.initialize();
@@ -389,3 +406,4 @@ onMounted(() => {
 .quiz-result.correct p { color: green; font-weight: 600; }
 .quiz-result.incorrect p { color: #b91c1c; font-weight: 600; }
 </style>
+
