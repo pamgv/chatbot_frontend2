@@ -344,16 +344,18 @@ const selectAnswer = async (option) => {
 
   try {
     // ✅ Guardar resultado del quiz con detalle completo
-    await axios.post(`${API_BASE}/user/save_quiz_result`, {
-      username: username.value,
-      game_number: gameStore.gameNumber,
-      question_number: gameStore.userMessageCount,
-      quiz_question: quizQuestion.value,
-      quiz_options: quizOptions.value,
-      selected_option: option,
-      correct_answer: correctDisplay,
-      is_correct: isAnswerCorrect.value,
+   await axios.post(`${API_BASE}/user/save_quiz_result`, {
+    username: username.value,
+    game_number: gameStore.gameNumber,
+    question_number: gameStore.userMessageCount,
+    quiz_question: quizQuestion.value,
+    quiz_options: quizOptions.value,
+    selected_option: option,
+    correct_answer_letter: correctAnswerLetter.value,
+    correct_answer_text: correctAnswer.value,
+    is_correct: isAnswerCorrect.value,
     });
+
 
     // ✅ Actualizar progreso del juego
     await axios.post(`${API_BASE}/user/update_game`, {
@@ -432,6 +434,7 @@ onMounted(() => {
 .quiz-result.correct p { color: green; font-weight: 600; }
 .quiz-result.incorrect p { color: #b91c1c; font-weight: 600; }
 </style>
+
 
 
 
