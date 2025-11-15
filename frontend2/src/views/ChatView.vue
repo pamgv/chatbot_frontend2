@@ -66,8 +66,16 @@
             </div>
           </div>
           <div v-else class="quiz-result" :class="{ correct: isAnswerCorrect, incorrect: !isAnswerCorrect }">
-            <p v-if="isAnswerCorrect">✅ Correct! Great job!</p>
-            <p v-else>❌ Incorrect. The correct answer was: <strong>{{ correctAnswer }}</strong></p>
+            <p v-if="isAnswerCorrect">
+              ✅ Correct! Great job!
+            </p>
+
+            <p v-else>
+              ❌ Incorrect.<br>
+              Correct answer was:
+              <strong>{{ correctAnswerLetter }} — {{ correctAnswer }}</strong>
+            </p>
+
           </div>
         </div>
       </Motion>
@@ -160,6 +168,8 @@ const quizOptions = ref([]);
 const correctAnswer = ref("");
 const quizAnswered = ref(false);
 const isAnswerCorrect = ref(false);
+const correctAnswerLetter = ref("");
+
 
 const toggleSidebar = () => {
   const sidebar = document.querySelector(".sidebar");
@@ -280,7 +290,9 @@ const sendMessage = async () => {
         } else {
           quizQuestion.value = q.question;
           quizOptions.value = q.options;
-          correctAnswer.value = q.correct_answer;
+          correctAnswer.value = q.correct_answer_text;   // texto
+          correctAnswerLetter.value = q.correct_answer_letter; // letra
+
         }
 
         quizAnswered.value = false;
@@ -420,5 +432,6 @@ onMounted(() => {
 .quiz-result.correct p { color: green; font-weight: 600; }
 .quiz-result.incorrect p { color: #b91c1c; font-weight: 600; }
 </style>
+
 
 
