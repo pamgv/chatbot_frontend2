@@ -258,9 +258,13 @@ const sendMessage = async () => {
 
     messages.value.push({ id: Date.now() + 1, text: data.bot_response, sender: "bot" });
 
-    if (nextCount % 5 === 0) {
+    // ✅ Generar quiz cada 2 preguntas (no cada 5)
+    if (nextCount % 2 === 0) {
       await nextTick();
-      const context = messages.value.slice(-5).map(m => `${m.sender}: ${m.text}`).join("\n");
+
+      // ✅ Contexto: toda la conversación actual del juego
+      const context = messages.value.map(m => `${m.sender}: ${m.text}`).join("\n");
+
       try {
         const quizData = await axios.post(`${API_BASE}/chatbot/generate_quiz`, {
           username: username.value,
@@ -303,15 +307,14 @@ const sendMessage = async () => {
 const selectAnswer = async (option) => {
   quizAnswered.value = true;
 
-  // 🧠 Normaliza la comparación (admite letra o texto)
+  // 🧠 Normaliza comparación (admite letra o texto)
   const normalizedCorrect = correctAnswer.value.trim().toLowerCase();
   const normalizedOption = option.trim().toLowerCase();
 
-  // Si la respuesta correcta viene como "B", obtenemos la opción correspondiente
   const letterMap = ["a", "b", "c", "d", "e"];
   let correctText = normalizedCorrect;
 
-  // Si el valor de correctAnswer es una letra (A, B, C...), la convertimos a texto
+  // Si el correctAnswer es letra, obtenemos texto real
   if (letterMap.includes(normalizedCorrect)) {
     const index = letterMap.indexOf(normalizedCorrect);
     correctText = quizOptions.value[index]?.trim().toLowerCase() || "";
@@ -319,16 +322,28 @@ const selectAnswer = async (option) => {
 
   isAnswerCorrect.value = normalizedOption === correctText;
 
+  // ✅ Mostrar texto completo de la respuesta correcta (si era letra)
+  const correctDisplay =
+    letterMap.includes(normalizedCorrect)
+      ? quizOptions.value[letterMap.indexOf(normalizedCorrect)]
+      : correctAnswer.value;
+
   if (isAnswerCorrect.value) gameStore.score++;
 
   try {
+    // ✅ Guardar resultado del quiz con detalle completo
     await axios.post(`${API_BASE}/user/save_quiz_result`, {
       username: username.value,
       game_number: gameStore.gameNumber,
       question_number: gameStore.userMessageCount,
+      quiz_question: quizQuestion.value,
+      quiz_options: quizOptions.value,
+      selected_option: option,
+      correct_answer: correctDisplay,
       is_correct: isAnswerCorrect.value,
     });
 
+    // ✅ Actualizar progreso del juego
     await axios.post(`${API_BASE}/user/update_game`, {
       username: username.value,
       game_number: gameStore.gameNumber,
@@ -344,10 +359,9 @@ const selectAnswer = async (option) => {
 
   setTimeout(() => {
     showQuiz.value = false;
-  }, 2500);
+  }, 3000);
   scrollToBottom();
 };
-
 
 onMounted(async () => {
   authStore.initialize();
@@ -406,4 +420,5 @@ onMounted(() => {
 .quiz-result.correct p { color: green; font-weight: 600; }
 .quiz-result.incorrect p { color: #b91c1c; font-weight: 600; }
 </style>
+
 
