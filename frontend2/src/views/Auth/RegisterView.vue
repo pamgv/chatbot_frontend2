@@ -92,27 +92,46 @@ export default {
 
     const validateForm = () => {
       if (!form.value.username || !form.value.password || !form.value.confirmPassword) {
-        toast.error('Please fill in all fields');
-        return false;
+      toast.error('Please fill in all fields');
+      return false;
       }
 
       if (form.value.username.length < 3) {
-        toast.error('The username must have at least 3 characters');
-        return false;
+      toast.error('The username must have at least 3 characters');
+      return false;
       }
 
-      if (form.value.password.length < 6) {
-        toast.error('The password must have at least 6 characters');
-        return false;
+      // ❌ No emails ni datos personales
+      if (/@/.test(form.value.username) || /\./.test(form.value.username)) {
+      toast.error("Do not use emails or personal information in the username.");
+      return false;
       }
 
-      if (form.value.password !== form.value.confirmPassword) {
-        toast.error('The passwords do not match');
-        return false;
-      }
+    // ❌ No debe contener "nmsu"
+    if (form.value.username.toLowerCase().includes("nmsu")) {
+    toast.error("Usernames cannot contain 'nmsu'.");
+    return false;
+    }
 
-      return true;
-    };
+    // ❌ No nombres completos
+    if (form.value.username.includes(" ")) {
+    toast.error("The username cannot contain spaces or full names.");
+    return false;
+    }
+
+    if (form.value.password.length < 6) {
+    toast.error('The password must have at least 6 characters');
+    return false;
+    }
+
+    if (form.value.password !== form.value.confirmPassword) {
+    toast.error('The passwords do not match');
+    return false;
+    }
+
+    return true;
+};
+
 
     const handleRegister = async () => {
       if (!validateForm()) {
@@ -158,3 +177,4 @@ export default {
 
 
 <style scoped src="../../styles/formsAuth.css" />
+
