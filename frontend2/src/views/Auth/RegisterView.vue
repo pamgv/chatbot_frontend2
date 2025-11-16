@@ -3,6 +3,11 @@
     <div class="form-header">
       <h1>Create Account</h1>
       <p>Register to start using the application</p>
+      <p class="privacy-warning">
+        ⚠️ <strong>Privacy Notice:</strong> Do not use real names, institutional emails, or any personal information. 
+        Only use a simple, anonymous username. Avoid using anything containing “nmsu”.
+      </p>
+
     </div>
 
     <form @submit.prevent="handleRegister" class="form">
@@ -150,5 +155,6 @@ export default {
   }
 };
 </script>
+
 
 <style scoped src="../../styles/formsAuth.css" />
