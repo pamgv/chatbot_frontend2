@@ -319,6 +319,14 @@ const sendMessage = async () => {
 const selectAnswer = async (option) => {
   quizAnswered.value = true;
 
+  // 🔽 Scroll inmediato hacia la tarjeta del quiz
+nextTick(() => {
+  const quizBox = document.querySelector(".quiz-box");
+  if (quizBox) {
+    quizBox.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+});
+
   // 🧠 Normaliza comparación (admite letra o texto)
   const normalizedCorrect = correctAnswer.value.trim().toLowerCase();
   const normalizedOption = option.trim().toLowerCase();
@@ -434,6 +442,7 @@ onMounted(() => {
 .quiz-result.correct p { color: green; font-weight: 600; }
 .quiz-result.incorrect p { color: #b91c1c; font-weight: 600; }
 </style>
+
 
 
 
