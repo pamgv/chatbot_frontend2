@@ -4,9 +4,11 @@
       <h1>Create Account</h1>
       <p>Register to start using the application</p>
       <p class="privacy-warning">
-        ⚠️ <strong>Privacy Notice:</strong> Do not use real names, institutional emails, or any personal information. 
-        Only use a simple, anonymous username. Avoid using anything containing “nmsu”.
-      </p>
+  ⚠️ <strong>Privacy Notice:</strong> Do not use real names, institutional emails, or any personal information. 
+  Only use a simple, anonymous username. Avoid using anything containing “nmsu”.
+  <br>🔤 Usernames must be <strong>lowercase only</strong>. Uppercase letters are not allowed.
+</p>
+
 
     </div>
 
@@ -14,14 +16,16 @@
       <div class="form-group">
         <label for="username">Username</label>
         <input
-          type="text"
-          id="username"
-          v-model="form.username"
-          required
-          :disabled="loading"
-          placeholder="Choose a username"
-          minlength="3"
-        />
+  type="text"
+  id="username"
+  v-model="form.username"
+  required
+  :disabled="loading"
+  placeholder="Choose a username"
+  minlength="3"
+  @input="normalizeUsername"
+/>
+
       </div>
 
       <div class="password-grid">
@@ -90,53 +94,65 @@ export default {
     
     const loading = ref(false);
 
+    // 🔤 Convertir automáticamente a minúsculas
+    const normalizeUsername = () => {
+      form.value.username = form.value.username.toLowerCase();
+    };
+
     const validateForm = () => {
+      normalizeUsername();
+
       if (!form.value.username || !form.value.password || !form.value.confirmPassword) {
-      toast.error('Please fill in all fields');
-      return false;
+        toast.error('Please fill in all fields');
+        return false;
       }
 
       if (form.value.username.length < 3) {
-      toast.error('The username must have at least 3 characters');
-      return false;
+        toast.error('The username must have at least 3 characters');
+        return false;
       }
 
-      // ❌ No emails ni datos personales
+      // ⛔ Bloquear emails
       if (/@/.test(form.value.username) || /\./.test(form.value.username)) {
-      toast.error("Do not use emails or personal information in the username.");
-      return false;
+        toast.error("Do not use emails or personal information in the username.");
+        return false;
       }
 
-    // ❌ No debe contener "nmsu"
-    if (form.value.username.toLowerCase().includes("nmsu")) {
-    toast.error("Usernames cannot contain 'nmsu'.");
-    return false;
-    }
+      // ⛔ Bloquear 'nmsu'
+      if (form.value.username.toLowerCase().includes("nmsu")) {
+        toast.error("Usernames cannot contain 'nmsu'.");
+        return false;
+      }
 
-    // ❌ No nombres completos
-    if (form.value.username.includes(" ")) {
-    toast.error("The username cannot contain spaces or full names.");
-    return false;
-    }
+      // ⛔ No espacios
+      if (form.value.username.includes(" ")) {
+        toast.error("The username cannot contain spaces or full names.");
+        return false;
+      }
 
-    if (form.value.password.length < 6) {
-    toast.error('The password must have at least 6 characters');
-    return false;
-    }
+      // ⛔ SOLO minúsculas permitidas (opcional números y '_')
+      if (!/^[a-z0-9_]+$/.test(form.value.username)) {
+        toast.error("Use only lowercase letters (a–z), numbers, or underscores.");
+        return false;
+      }
 
-    if (form.value.password !== form.value.confirmPassword) {
-    toast.error('The passwords do not match');
-    return false;
-    }
+      if (form.value.password.length < 6) {
+        toast.error('The password must have at least 6 characters');
+        return false;
+      }
 
-    return true;
-};
+      if (form.value.password !== form.value.confirmPassword) {
+        toast.error('The passwords do not match');
+        return false;
+      }
 
+      return true;
+    };
 
     const handleRegister = async () => {
-      if (!validateForm()) {
-        return;
-      }
+      normalizeUsername(); // asegurar minúsculas
+
+      if (!validateForm()) return;
 
       loading.value = true;
 
@@ -145,14 +161,13 @@ export default {
         
         if (result.success) {
           toast.success(result.message);
-          // Limpiar el formulario
+
           form.value = {
             username: '',
             password: '',
             confirmPassword: ''
           };
-          
-          // Redirigir al login después de 2 segundos
+
           setTimeout(() => {
             router.push('/login');
           }, 2000);
@@ -169,12 +184,15 @@ export default {
     return {
       form,
       loading,
-      handleRegister
+      handleRegister,
+      normalizeUsername
     };
   }
 };
 </script>
 
 
+
 <style scoped src="../../styles/formsAuth.css" />
+
 
