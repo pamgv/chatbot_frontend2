@@ -4,9 +4,9 @@
       <h1>Create Account</h1>
       <p>Register to start using the application</p>
       <p class="privacy-warning">
-  ⚠️ <strong>Privacy Notice:</strong> Do not use real names, institutional emails, or any personal information. 
+  <strong>Privacy Notice:</strong> Do not use real names, institutional emails, or any personal information. 
   Only use a simple, anonymous username. Avoid using anything containing “nmsu”.
-  <br>🔤 Usernames must be <strong>lowercase only</strong>. Uppercase letters are not allowed.
+  <br>Usernames must be <strong>lowercase only</strong>. Uppercase letters are not allowed.
 </p>
 
 
@@ -194,5 +194,6 @@ export default {
 
 
 <style scoped src="../../styles/formsAuth.css" />
+
 
 
