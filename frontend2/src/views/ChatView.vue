@@ -259,12 +259,21 @@ const sendMessage = async () => {
       hasPersistedCurrentGame.value = true;
     }
 
-    const { data } = await axios.post(`${API_BASE}/user/save_message`, {
-      username: username.value,
-      text,
-      game_number: gameStore.gameNumber,
-      question_number: gameStore.userMessageCount,
-    });
+    const { data } = await axios.post(
+  `${API_BASE}/user/save_message`,
+  {
+    username: username.value,
+    text,
+    game_number: gameStore.gameNumber,
+    question_number: gameStore.userMessageCount,
+  },
+  {
+    headers: {
+      "X-Username": username.value   // 👈 Añadido aquí
+    }
+  }
+);
+
 
     messages.value.push({ id: Date.now() + 1, text: data.bot_response, sender: "bot" });
 
@@ -442,6 +451,7 @@ onMounted(() => {
 .quiz-result.correct p { color: green; font-weight: 600; }
 .quiz-result.incorrect p { color: #b91c1c; font-weight: 600; }
 </style>
+
 
 
 
